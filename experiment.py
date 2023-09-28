@@ -67,8 +67,8 @@ class Configs(BaseConfigs):
     learning_rate: float = 2e-5
 
     # Number of training epochs
-    epochs: int = 1_000
-
+    #epochs: int = 1_000
+    epochs: int = 1_0
     # Dataset
     dataset: torch.utils.data.Dataset
     # Dataloader
