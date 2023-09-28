@@ -151,11 +151,12 @@ class Configs(BaseConfigs):
             # Train the model
             self.train()
             # Sample some images
-            #self.sample()
+            
             # New line in the console
             tracker.new_line()
             # Save the model
             experiment.save_checkpoint()
+            self.sample()
 
 
 class CelebADataset(torch.utils.data.Dataset):
