@@ -257,17 +257,17 @@ def main():
     configs = Configs()
 
     # Set configurations. You can override the defaults by passing the values in the dictionary.
-    """experiment.configs(configs, {
+    experiment.configs(configs, {
         'dataset': 'CelebA',  # 'MNIST'
         'image_channels': 3,  # 1,
         'epochs': 100,  # 5,
-    })"""
+    })
 
-    experiment.configs(configs, {
+    """experiment.configs(configs, {
         'dataset': 'MNIST',  # 
         'image_channels': 1,  # 1,
         'epochs': 5,  # 5,
-    })
+    })"""
 
     # Initialize
     configs.init()
