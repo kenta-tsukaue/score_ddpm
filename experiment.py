@@ -221,6 +221,7 @@ def celeb_dataset(c: Configs):
     """
     Create CelebA dataset
     """
+    print(CelebADataset(c.image_size))
     return CelebADataset(c.image_size)
 
 
