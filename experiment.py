@@ -94,6 +94,7 @@ class Configs(BaseConfigs):
             device=self.device,
         )
 
+        print(self.dataset)
         # Create dataloader
         self.data_loader = torch.utils.data.DataLoader(self.dataset, self.batch_size, shuffle=True, pin_memory=True)
         # Create optimizer
