@@ -102,7 +102,7 @@ class Configs(BaseConfigs):
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
         ])
-        self.dataset = datasets.CelebA(root='./data', split='train', transform=transform, download=True)
+        self.dataset = datasets.CIFAR10(root='./data', split='train', transform=transform, download=True)
         # Create dataloader
         self.data_loader = torch.utils.data.DataLoader(self.dataset, self.batch_size, shuffle=True, pin_memory=True)
         # Create optimizer
@@ -204,7 +204,6 @@ def main():
 
     # Set configurations. You can override the defaults by passing the values in the dictionary.
     experiment.configs(configs, {
-        'dataset': 'CelebA',  # 'MNIST'
         'image_channels': 3,  # 1,
         'epochs': 100,  # 5,
     })
