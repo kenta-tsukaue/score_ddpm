@@ -126,12 +126,11 @@ class Configs(BaseConfigs):
         """
 
         # Iterate through the dataset
-        for data in monit.iterate('Train', 100):#self.data_loader
+        for data in monit.iterate('Train', self.data_loader):#self.data_loader
             # Increment global step
             tracker.add_global_step()
             # Move data to device
             data = data.to(self.device)
-
             # Make the gradients zero
             self.optimizer.zero_grad()
             # Calculate loss
