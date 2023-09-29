@@ -108,10 +108,6 @@ class Configs(BaseConfigs):
         # 保存先ディレクトリのパス
         save_dir = "/mnt/data/images/"
 
-        # ディレクトリが存在しない場合は作成
-        if not os.path.exists(save_dir):
-            os.makedirs(save_dir)
-    
         with torch.no_grad():
             # $x_T \sim p(x_T) = \mathcal{N}(x_T; \mathbf{0}, \mathbf{I})$
             x = torch.randn([self.n_samples, self.image_channels, self.image_size, self.image_size],

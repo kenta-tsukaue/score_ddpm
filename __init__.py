@@ -285,3 +285,4 @@ class DenoiseDiffusion:
 
         # MSE loss
         return F.mse_loss(noise, eps_theta)
+
