@@ -106,7 +106,7 @@ class Configs(BaseConfigs):
         ### Sample images
         """
         # 保存先ディレクトリのパス
-        save_dir = "/mnt/data/images/"
+        save_dir = "./mnt/data/images/"
 
         with torch.no_grad():
             # $x_T \sim p(x_T) = \mathcal{N}(x_T; \mathbf{0}, \mathbf{I})$
