@@ -102,7 +102,7 @@ class Configs(BaseConfigs):
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
         ])
-        self.dataset = datasets.CIFAR10(root='./data', split='train', transform=transform, download=True)
+        self.dataset = datasets.CIFAR10(root='./data', train=True, transform=transform, download=True)
         # Create dataloader
         self.data_loader = torch.utils.data.DataLoader(self.dataset, self.batch_size, shuffle=True, pin_memory=True)
         # Create optimizer
