@@ -23,6 +23,7 @@ import torch
 import torch.utils.data
 import torchvision
 from PIL import Image
+import datetime
 
 from labml import lab, tracker, experiment, monit
 from labml.configs import BaseConfigs, option
@@ -105,8 +106,11 @@ class Configs(BaseConfigs):
         """
         ### Sample images
         """
+        # 現在のタイムスタンプを取得
+        timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+
         # 保存先ディレクトリのパス
-        save_dir = "./mnt/data/images/"
+        save_dir = f"./mnt/data/images_{timestamp}/"
 
         with torch.no_grad():
             # $x_T \sim p(x_T) = \mathcal{N}(x_T; \mathbf{0}, \mathbf{I})$
