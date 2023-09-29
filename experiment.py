@@ -22,9 +22,10 @@ import os
 import torch
 import torch.utils.data
 import torchvision
+from torchvision import datasets, transforms
 from PIL import Image
 import datetime
-
+import numpy as np
 from labml import lab, tracker, experiment, monit
 from labml.configs import BaseConfigs, option
 from labml_helpers.device import DeviceConfigs
@@ -93,8 +94,15 @@ class Configs(BaseConfigs):
             n_steps=self.n_steps,
             device=self.device,
         )
-
-        print(self.dataset)
+        #データセットの定義
+        # 前処理の定義
+        transform = transforms.Compose([
+            transforms.Resize(32),  # 画像サイズを変更する場合
+            transforms.CenterCrop(32),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+        ])
+        self.dataset = datasets.CelebA(root='./data', split='train', transform=transform, download=True)
         # Create dataloader
         self.data_loader = torch.utils.data.DataLoader(self.dataset, self.batch_size, shuffle=True, pin_memory=True)
         # Create optimizer
@@ -137,7 +145,9 @@ class Configs(BaseConfigs):
 
             # 画像を保存
             for i, img_tensor in enumerate(scaled_data):
-                img = Image.fromarray(img_tensor[0].numpy(), 'L')  # 'L'はグレースケール画像を意味する
+                #img = Image.fromarray(img_tensor[0].numpy(), 'L')  # 'L'はグレースケール画像を意味する
+                img_array = np.transpose(img_tensor.numpy(), (1, 2, 0))
+                img = Image.fromarray(img_array, 'RGB')
                 file_name = f"image_{i}.jpg"
                 file_path = os.path.join(save_dir, file_name)
                 img.save(file_path)
@@ -183,72 +193,6 @@ class Configs(BaseConfigs):
             # Save the model
             experiment.save_checkpoint()
 
-
-class CelebADataset(torch.utils.data.Dataset):
-    """
-    ### CelebA HQ dataset
-    """
-
-    def __init__(self, image_size: int):
-        super().__init__()
-
-        # CelebA images folder
-        folder = lab.get_data_path() / 'celebA'
-        # List of files
-        self._files = [p for p in folder.glob(f'**/*.jpg')]
-
-        # Transformations to resize the image and convert to tensor
-        self._transform = torchvision.transforms.Compose([
-            torchvision.transforms.Resize(image_size),
-            torchvision.transforms.ToTensor(),
-        ])
-
-    def __len__(self):
-        """
-        Size of the dataset
-        """
-        return len(self._files)
-
-    def __getitem__(self, index: int):
-        """
-        Get an image
-        """
-        img = Image.open(self._files[index])
-        return self._transform(img)
-
-
-@option(Configs.dataset, 'CelebA')
-def celeb_dataset(c: Configs):
-    """
-    Create CelebA dataset
-    """
-    print(CelebADataset(c.image_size))
-    return CelebADataset(c.image_size)
-
-
-class MNISTDataset(torchvision.datasets.MNIST):
-    """
-    ### MNIST dataset
-    """
-
-    def __init__(self, image_size):
-        transform = torchvision.transforms.Compose([
-            torchvision.transforms.Resize(image_size),
-            torchvision.transforms.ToTensor(),
-        ])
-
-        super().__init__(str(lab.get_data_path()), train=True, download=True, transform=transform)
-
-    def __getitem__(self, item):
-        return super().__getitem__(item)[0]
-
-
-@option(Configs.dataset, 'MNIST')
-def mnist_dataset(c: Configs):
-    """
-    Create MNIST dataset
-    """
-    return MNISTDataset(c.image_size)
 
 
 def main():
