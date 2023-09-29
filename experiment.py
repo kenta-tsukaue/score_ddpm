@@ -111,6 +111,10 @@ class Configs(BaseConfigs):
 
         # 保存先ディレクトリのパス
         save_dir = f"./mnt/data/images_{timestamp}/"
+        
+        #ディレクトリがなかったら作成
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir)
 
         with torch.no_grad():
             # $x_T \sim p(x_T) = \mathcal{N}(x_T; \mathbf{0}, \mathbf{I})$
