@@ -18,7 +18,7 @@ The paper had used a exponential moving average of the model with a decay of $0.
 simplicity.
 """
 from typing import List
-
+import os
 import torch
 import torch.utils.data
 import torchvision
@@ -105,6 +105,13 @@ class Configs(BaseConfigs):
         """
         ### Sample images
         """
+        # 保存先ディレクトリのパス
+        save_dir = "/mnt/data/images/"
+
+        # ディレクトリが存在しない場合は作成
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir)
+    
         with torch.no_grad():
             # $x_T \sim p(x_T) = \mathcal{N}(x_T; \mathbf{0}, \mathbf{I})$
             x = torch.randn([self.n_samples, self.image_channels, self.image_size, self.image_size],
@@ -119,6 +126,18 @@ class Configs(BaseConfigs):
 
             # Log samples
             tracker.save('sample', x)
+
+            # データを0~255の範囲にスケーリング
+            scaled_data = ((x + 1) * 127.5).byte()
+
+            # 画像を保存
+            for i, img_tensor in enumerate(scaled_data):
+                img = Image.fromarray(img_tensor[0].numpy(), 'L')  # 'L'はグレースケール画像を意味する
+                file_name = f"image_{i}.jpg"
+                file_path = os.path.join(save_dir, file_name)
+                img.save(file_path)
+
+
 
     def train(self):
         """
