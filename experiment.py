@@ -154,9 +154,11 @@ class Configs(BaseConfigs):
             
             # New line in the console
             tracker.new_line()
+            
+            self.sample()
+
             # Save the model
             experiment.save_checkpoint()
-            self.sample()
 
 
 class CelebADataset(torch.utils.data.Dataset):
