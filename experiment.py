@@ -107,15 +107,15 @@ class Configs(BaseConfigs):
             os.makedirs(save_dir)
 
         with torch.no_grad():
-            # $x_T \sim p(x_T) = \mathcal{N}(x_T; \mathbf{0}, \mathbf{I})$
+            # $x_T \sim p(x_T) = \mathcal{N}(x_T; \mathbf{0}, \mathbf{I})$ / x(T)を標準正規分布からサンプリング
             x = torch.randn([self.n_samples, self.image_channels, self.image_size, self.image_size],
                             device=self.device)
 
-            # Remove noise for $T$ steps
+            # 1000ステップかけて、ノイズを除去していく。
             for t_ in monit.iterate('Sample', self.n_steps):
                 # $t$
                 t = self.n_steps - t_ - 1
-                # Sample from $\textcolor{lightgreen}{p_\theta}(x_{t-1}|x_t)$
+                # /x(t)からx(t-1)を取得
                 x = self.diffusion.p_sample(x, x.new_full((self.n_samples,), t, dtype=torch.long))
 
             # Log samples
@@ -144,15 +144,15 @@ class Configs(BaseConfigs):
         for inputs, labels in monit.iterate('Train', self.data_loader):#self.data_loader
             # Increment global step
             tracker.add_global_step()
-            # Move data to device
+            # データをデバイスに送信
             data = inputs.to(self.device)
-            # Make the gradients zero
+            # 勾配を0にする
             self.optimizer.zero_grad()
-            # Calculate loss
+            # ロスを計算する。/__init__.pyの264行目あたりから
             loss = self.diffusion.loss(data)
-            # Compute gradients
+            # 勾配を計算する
             loss.backward()
-            # Take an optimization step
+            # 勾配を元にパラメータを更新
             self.optimizer.step()
             # Track the loss
             tracker.save('loss', loss)
@@ -185,8 +185,8 @@ def main():
 
     # Set configurations. You can override the defaults by passing the values in the dictionary.
     experiment.configs(configs, {
-        'image_channels': 3,  # 1,
-        'epochs': 100,  # 5,
+        'image_channels': 3,
+        'epochs': 100,
     })
 
     # Initialize

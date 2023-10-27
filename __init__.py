@@ -212,21 +212,15 @@ class DenoiseDiffusion:
         return mean, var
 
     def q_sample(self, x0: torch.Tensor, t: torch.Tensor, eps: Optional[torch.Tensor] = None):
-        """
-        #### Sample from $q(x_t|x_0)$
+        #### $q(x_t|x_0)$からサンプリングを行う
 
-        \begin{align}
-        q(x_t|x_0) &= \mathcal{N} \Big(x_t; \sqrt{\bar\alpha_t} x_0, (1-\bar\alpha_t) \mathbf{I} \Big)
-        \end{align}
-        """
-
-        # $\epsilon \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$
+        # ノイズが設定されてない場合ノイズを設定
         if eps is None:
             eps = torch.randn_like(x0)
 
-        # get $q(x_t|x_0)$
+        # q(x_t|x_0)の期待値と分散を得る
         mean, var = self.q_xt_x0(x0, t)
-        # Sample from $q(x_t|x_0)$
+        # q(x_t|x_0)からxtをサンプリング
         return mean + (var ** 0.5) * eps
 
     def p_sample(self, xt: torch.Tensor, t: torch.Tensor):
@@ -242,47 +236,42 @@ class DenoiseDiffusion:
         \end{align}
         """
 
-        # $\textcolor{lightgreen}{\epsilon_\theta}(x_t, t)$
+        # 学習されたU-NETからスコアを予測
         eps_theta = self.eps_model(xt, t)
-        # [gather](utils.html) $\bar\alpha_t$
+        # alpha_barを取得
         alpha_bar = gather(self.alpha_bar, t)
-        # $\alpha_t$
+        # alphaを取得
         alpha = gather(self.alpha, t)
-        # $\frac{\beta}{\sqrt{1-\bar\alpha_t}}$
+        # $\frac{\beta}{\sqrt{1-\bar\alpha_t}}$を取得（スコア関数の係数）
         eps_coef = (1 - alpha) / (1 - alpha_bar) ** .5
         # $$\frac{1}{\sqrt{\alpha_t}} \Big(x_t -
         #      \frac{\beta_t}{\sqrt{1-\bar\alpha_t}}\textcolor{lightgreen}{\epsilon_\theta}(x_t, t) \Big)$$
+        #x(t-1)の平均を取得
         mean = 1 / (alpha ** 0.5) * (xt - eps_coef * eps_theta)
-        # $\sigma^2$
+        # $\sigma^2$/ x(t-1)の分散を取得
         var = gather(self.sigma2, t)
 
         # $\epsilon \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$
         eps = torch.randn(xt.shape, device=xt.device)
-        # Sample
+        # x(t-1)を取得
         return mean + (var ** .5) * eps
 
     def loss(self, x0: torch.Tensor, noise: Optional[torch.Tensor] = None):
-        """
-        #### Simplified Loss
-
-        $$L_{\text{simple}}(\theta) = \mathbb{E}_{t,x_0, \epsilon} \Bigg[ \bigg\Vert
-        \epsilon - \textcolor{lightgreen}{\epsilon_\theta}(\sqrt{\bar\alpha_t} x_0 + \sqrt{1-\bar\alpha_t}\epsilon, t)
-        \bigg\Vert^2 \Bigg]$$
-        """
-        # Get batch size
+        # バッチサイズを取得
         batch_size = x0.shape[0]
-        # Get random $t$ for each sample in the batch
+        # それぞれのバッチに対して、ランダムにtを取得する
         t = torch.randint(0, self.n_steps, (batch_size,), device=x0.device, dtype=torch.long)
 
-        # $\epsilon \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$
+        # データと同じ形のノイズを得る
         if noise is None:
             noise = torch.randn_like(x0)
 
-        # Sample $x_t$ for $q(x_t|x_0)$
+        # 得たノイズを元にxtを取得する
         xt = self.q_sample(x0, t, eps=noise)
-        # Get $\textcolor{lightgreen}{\epsilon_\theta}(\sqrt{\bar\alpha_t} x_0 + \sqrt{1-\bar\alpha_t}\epsilon, t)$
+
+        # xtとtから加わったノイズ（スコア）を予測
         eps_theta = self.eps_model(xt, t)
 
-        # MSE loss
+        # MSE（平均二乗誤差）で予測されたスコアと実際のスコアを比べる
         return F.mse_loss(noise, eps_theta)
 
